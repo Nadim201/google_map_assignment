@@ -16,7 +16,7 @@ class CustomInputDecoration {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
         borderSide: const BorderSide(
-          color: Colors.blue,
+          color: Colors.deepOrange,
           width: 2.0,
         ),
       ),

@@ -2,35 +2,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-import 'package:google_map_assignment/ui/main/home_page.dart';
-import 'package:google_map_assignment/ui/auth/sign_up.dart';
-import 'package:google_map_assignment/ui/utils_files/custom_snack_bar.dart';
+import 'package:google_map_assignment/ui/auth/login_screen.dart';
 
 import '../utils_files/color.dart';
+import '../utils_files/custom_snack_bar.dart';
 import '../utils_files/text_format.dart';
 
-class SignIn extends StatefulWidget {
-  const SignIn({super.key});
+class SignUp extends StatefulWidget {
+  const SignUp({super.key});
 
   @override
-  State<SignIn> createState() => _SignInState();
+  State<SignUp> createState() => _SignUpState();
 }
 
-class _SignInState extends State<SignIn> {
+class _SignUpState extends State<SignUp> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
+  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   bool isLoading = false;
   bool isVisible = false;
-  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passController.dispose();
-
-    super.dispose();
-  }
 
   void toggleVisibility() {
     setState(
@@ -41,9 +33,19 @@ class _SignInState extends State<SignIn> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passController.dispose();
+    _nameController.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         child: Stack(
           children: [
@@ -68,6 +70,7 @@ class _SignInState extends State<SignIn> {
                   topLeft: Radius.circular(40),
                 ),
               ),
+              child: const Text(''),
             ),
             SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
@@ -84,43 +87,11 @@ class _SignInState extends State<SignIn> {
                   InputFeildSection(size, context),
                 ],
               ),
-            ),
-            SignInGoogle()
+            )
           ],
         ),
       ),
     );
-  }
-
-  Positioned SignInGoogle() {
-    return Positioned(
-        bottom: Get.height * 0.09,
-        right: 30,
-        left: 30,
-        child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                elevation: 0,
-                backgroundColor: ColorFile.whiteColor,
-                side: const BorderSide(color: Colors.deepOrange),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8))),
-            onPressed: () {},
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/images/google.png',
-                  height: Get.height * 0.07,
-                  width: Get.width * 0.07,
-                ),
-                SizedBox(
-                  width: 24,
-                ),
-                Text(
-                  'Sign In With Google',
-                  style: TextFile.header1TextStyle(),
-                ),
-              ],
-            )));
   }
 
   Material InputFeildSection(Size size, BuildContext context) {
@@ -137,7 +108,7 @@ class _SignInState extends State<SignIn> {
         child: Column(
           children: [
             Text(
-              'Sign In',
+              'Sign Up',
               style: TextFile.headerTextStyle().copyWith(color: Colors.blue),
             ),
             Form(
@@ -184,22 +155,15 @@ class _SignInState extends State<SignIn> {
                       return null;
                     },
                   ),
-                  Container(
-                    alignment: Alignment.topRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text('Forgot Password?'),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   SizedBox(
-                    width: size.width,
+                    width: Get.width,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           backgroundColor: ColorFile.primaryColor),
-                      onPressed: formValidation,
+                      onPressed: validatorSection,
                       child: Text(
-                        'Login',
+                        'Sign Up',
                         style: TextFile.header1TextStyle()
                             .copyWith(color: ColorFile.whiteColor),
                       ),
@@ -209,17 +173,17 @@ class _SignInState extends State<SignIn> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Don't have an account? ",
+                      Text("have an account? ",
                           style: TextFile.header3LightText()),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const SignUp()));
+                                  builder: (context) => const SignIn()));
                         },
                         child: Text(
-                          'SignUp',
+                          'Login',
                           style: TextFile.header3Text()
                               .copyWith(color: ColorFile.primaryColor),
                         ),
@@ -236,22 +200,25 @@ class _SignInState extends State<SignIn> {
     );
   }
 
-  void formValidation() {
+  void validatorSection() async {
     if (_key.currentState!.validate()) {
-      onTabSignIn();
+      onTanSignUp();
     }
   }
 
-  Future<void> onTabSignIn() async {
+  Future<void> onTanSignUp() async {
     isLoading = true;
     setState(() {});
+
     try {
-      final value = await firebaseAuth.signInWithEmailAndPassword(
-          email: _emailController.text.trim(), password: _passController.text);
-      SnackBarFile.showSnackBar('Success', 'User Sign In${value.user!.email}');
-      Get.to(() => const HomePage());
+      final value = await firebaseAuth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passController.text,
+      );
+      SnackBarFile.showSnackBar('Success', 'User Sign Up${value.user!.email}');
+      Get.to(() => const SignIn());
     } catch (e) {
-      SnackBarFile.showSnackBar('Sign In Failed', (e.toString()));
+      SnackBarFile.showSnackBar('Sign Up Failed', (e.toString()));
     } finally {
       isLoading = false;
       setState(() {});
