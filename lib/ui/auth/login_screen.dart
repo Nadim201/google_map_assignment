@@ -5,6 +5,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:google_map_assignment/ui/main/home_page.dart';
 import 'package:google_map_assignment/ui/auth/sign_up.dart';
 import 'package:google_map_assignment/ui/utils_files/custom_snack_bar.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../utils_files/color.dart';
 import '../utils_files/text_format.dart';
@@ -104,7 +105,7 @@ class _SignInState extends State<SignIn> {
                 side: const BorderSide(color: Colors.deepOrange),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8))),
-            onPressed: () {},
+            onPressed: signInWithGoogle,
             child: Row(
               children: [
                 Image.asset(
@@ -138,7 +139,7 @@ class _SignInState extends State<SignIn> {
           children: [
             Text(
               'Sign In',
-              style: TextFile.headerTextStyle().copyWith(color: Colors.blue),
+              style: TextFile.headerTextStyle().copyWith(color: Colors.deepOrange),
             ),
             Form(
               key: _key,
@@ -239,6 +240,26 @@ class _SignInState extends State<SignIn> {
   void formValidation() {
     if (_key.currentState!.validate()) {
       onTabSignIn();
+    }
+  }
+
+  signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? user = await GoogleSignIn().signIn();
+      if (user == null) {
+        SnackBarFile.showSnackBar('Sign In Cancelled', 'User cancelled the Google sign-in.');
+        return;
+      }
+      final GoogleSignInAuthentication auth = await user.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: auth.accessToken,
+        idToken: auth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      SnackBarFile.showSnackBar('Success', 'Google Sign-In Successful!');
+      Get.to(() => const HomePage());
+    } catch (e) {
+      SnackBarFile.showSnackBar('Google Sign-In Failed', e.toString());
     }
   }
 

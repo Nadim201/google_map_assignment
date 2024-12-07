@@ -16,14 +16,14 @@ class FirebaseHelper {
       Timer(
         const Duration(seconds: 3),
         () => Get.to(
-          () => HomePage(),
+          HomePage(),
         ),
       );
     } else {
       Timer(
         const Duration(seconds: 3),
         () => Get.to(
-          () => SignIn(),
+          SignIn(),
         ),
       );
     }

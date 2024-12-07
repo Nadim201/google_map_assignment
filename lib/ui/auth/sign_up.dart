@@ -109,7 +109,7 @@ class _SignUpState extends State<SignUp> {
           children: [
             Text(
               'Sign Up',
-              style: TextFile.headerTextStyle().copyWith(color: Colors.blue),
+              style: TextFile.headerTextStyle().copyWith(color: Colors.deepOrange),
             ),
             Form(
               key: _key,
