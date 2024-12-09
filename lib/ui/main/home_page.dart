@@ -1,187 +1,126 @@
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
-import 'package:google_map_assignment/ui/utils_files/text_format.dart';
+import 'package:google_map_assignment/ui/google_map_permission.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
-import '../google_map_permission.dart';
-
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
+class GoogleMapsAssignment extends StatefulWidget {
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<GoogleMapsAssignment> createState() => _GoogleMapsAssignmentState();
 }
 
-class _HomePageState extends State<HomePage> {
-  LatLng _currentLocation = const LatLng(24.74076542685144, 89.40966855034364);
+class _GoogleMapsAssignmentState extends State<GoogleMapsAssignment> {
   final Completer<GoogleMapController> _controller = Completer();
+  final List<LatLng> _polylineCoordinates = [];
+  final Set<Polyline> _polylines = {};
+  final Set<Marker> _markers = {};
+  Timer? _locationUpdateTimer;
 
-  List<Marker> marker = [];
+  late LatLng _currentLocation;
 
   @override
   void initState() {
     super.initState();
-    // marker.addAll(markerList);
+    _initializeLocation();
+    _startRealTimeLocationUpdates();
+  }
+
+  @override
+  void dispose() {
+    _locationUpdateTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeLocation() async {
+    Position position = await getLocation();
+    _currentLocation = LatLng(position.latitude, position.longitude);
+
+    _addMarker(_currentLocation, "My Current Location");
+    _animateToLocation(_currentLocation);
+  }
+
+  void _startRealTimeLocationUpdates() {
+    _locationUpdateTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (timer) async {
+        Position position = await getLocation();
+        LatLng newLocation = LatLng(position.latitude, position.longitude);
+
+        _addPolyline(_currentLocation, newLocation);
+        _addMarker(newLocation, "My Current Location");
+        _animateToLocation(newLocation);
+        setState(
+          () {
+            _currentLocation = newLocation;
+          },
+        );
+      },
+    );
+  }
+
+  //Animate camera when move any place
+  Future<void> _animateToLocation(LatLng location) async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(target: location, zoom: 16),
+    ));
+  }
+
+//add Marker
+  void _addMarker(LatLng position, String title) {
+    _markers.clear();
+    _markers.add(
+      Marker(
+        markerId: MarkerId(title),
+        position: position,
+        infoWindow: InfoWindow(
+          title: "My Current Location",
+          snippet: "Lat: ${position.longitude}, Lng: ${position.longitude}",
+        ),
+      ),
+    );
+  }
+
+  //add polyline section
+  void _addPolyline(LatLng oldLocation, LatLng newLocation) {
+    _polylineCoordinates.add(newLocation);
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId("tracking_polyline"),
+        points: _polylineCoordinates,
+        color: Colors.blue,
+        width: 5,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Location Tracker'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.account_circle),
-          ),
-        ],
+        title: const Text("Google Maps Assignment"),
       ),
-      drawer: DrawerSection(),
-      body: Stack(
-        children: [
-          // Google Map
-          GoogleMapSection(),
-          SearchingSection(),
-          // Floating Action Buttons
-          Positioned(
-            bottom: 120.0,
-            right: 15.0,
-            child: Column(
-              children: [
-                FloatingActionButton(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  onPressed: () async {
-                    GoogleMapController controller = await _controller.future;
-                    final customPosition = LatLng(24.7661, 89.3838);
-                    controller.animateCamera(
-                      CameraUpdate.newCameraPosition(
-                        CameraPosition(
-                          zoom: 16,
-                          target: customPosition,
-                        ),
-                      ),
-                    );
-                    marker.clear();
-
-                    //how to add marker
-                    marker.add(
-                      Marker(
-                          draggable: true,
-                          infoWindow: InfoWindow(title: 'This is my Upazila '),
-                          markerId: MarkerId('Upzila Marker'),
-                          position: customPosition,
-                          icon: BitmapDescriptor.defaultMarkerWithHue(
-                              BitmapDescriptor.hueCyan)),
-                    );
-                    setState(() {});
-                  },
-                  child: const Icon(Icons.navigation),
-                ),
-                const SizedBox(height: 10),
-                FloatingActionButton(
-                  backgroundColor: Colors.greenAccent,
-                  onPressed: () async {
-                    Position position = await getLocation();
-                    final controller = await _controller
-                        .future;
-                    controller.animateCamera(
-                      CameraUpdate.newCameraPosition(
-                        CameraPosition(
-                          zoom: 14,
-                          target: LatLng(position.latitude, position.longitude),
-                        ),
-                      ),
-                    );
-                    marker.clear();
-                    marker.add(
-                      Marker(
-                        draggable: true,
-                        infoWindow: InfoWindow(title: 'This is my home '),
-                        markerId: const MarkerId('My Current Location'),
-                        position: LatLng(position.latitude, position.longitude),
-                      ),
-                    );
-                    setState(() {}); // Update the UI
-                  },
-                  child: const Icon(Icons.location_searching),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  GoogleMap GoogleMapSection() {
-    return GoogleMap(
-      markers: Set<Marker>.of(marker),
-      onMapCreated: (GoogleMapController controller) {
-        _controller.complete(controller);
-      },
-      initialCameraPosition: CameraPosition(
-        target: _currentLocation,
-        zoom: 14.0,
-      ),
-    );
-  }
-
-  Positioned SearchingSection() {
-    return Positioned(
-      top: 24,
-      left: 15.0,
-      right: 15.0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        decoration: BoxDecoration(boxShadow: const [
-          BoxShadow(blurRadius: 1, spreadRadius: 0.02),
-        ], borderRadius: BorderRadius.circular(8), color: Colors.white),
-        child: TextField(
-          style: TextFile.header1TextStyle(),
-          decoration: const InputDecoration(
-            contentPadding: EdgeInsets.symmetric(vertical: 12),
-            suffixIcon: Icon(
-              Icons.mic,
-              size: 30,
-            ),
-            prefixIcon: Icon(
-              Icons.search,
-              size: 30,
-            ),
-            hintText: 'Search Your Location',
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-          ),
+      body: GoogleMap(
+        mapType: MapType.normal,
+        initialCameraPosition: CameraPosition(
+          target: LatLng(0, 0), // Default position before loading
+          zoom: 2,
         ),
+        markers: _markers,
+        polylines: _polylines,
+        onMapCreated: (GoogleMapController controller) {
+          _controller.complete(controller);
+        },
       ),
-    );
-  }
-
-  Drawer DrawerSection() {
-    return Drawer(
-      child: ListView(
-        children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue),
-            child: Text(
-              'Map Menu',
-              style: TextStyle(color: Colors.white, fontSize: 20),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.place),
-            title: const Text('Your places'),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.timeline),
-            title: const Text('Your timeline'),
-            onTap: () {},
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          Position position = await getLocation();
+          LatLng location = LatLng(position.latitude, position.longitude);
+          _animateToLocation(location);
+        },
+        child: Icon(Icons.my_location),
       ),
     );
   }

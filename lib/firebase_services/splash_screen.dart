@@ -16,7 +16,7 @@ class FirebaseHelper {
       Timer(
         const Duration(seconds: 3),
         () => Get.to(
-          HomePage(),
+          GoogleMapsAssignment(),
         ),
       );
     } else {

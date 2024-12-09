@@ -114,7 +114,7 @@ class _SignInState extends State<SignIn> {
                   width: Get.width * 0.07,
                 ),
                 SizedBox(
-                  width: 24,
+                  width: 70,
                 ),
                 Text(
                   'Sign In With Google',
@@ -139,7 +139,8 @@ class _SignInState extends State<SignIn> {
           children: [
             Text(
               'Sign In',
-              style: TextFile.headerTextStyle().copyWith(color: Colors.deepOrange),
+              style:
+                  TextFile.headerTextStyle().copyWith(color: Colors.deepOrange),
             ),
             Form(
               key: _key,
@@ -247,7 +248,8 @@ class _SignInState extends State<SignIn> {
     try {
       final GoogleSignInAccount? user = await GoogleSignIn().signIn();
       if (user == null) {
-        SnackBarFile.showSnackBar('Sign In Cancelled', 'User cancelled the Google sign-in.');
+        SnackBarFile.showSnackBar(
+            'Sign In Cancelled', 'User cancelled the Google sign-in.');
         return;
       }
       final GoogleSignInAuthentication auth = await user.authentication;
@@ -257,7 +259,7 @@ class _SignInState extends State<SignIn> {
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
       SnackBarFile.showSnackBar('Success', 'Google Sign-In Successful!');
-      Get.to(() => const HomePage());
+      Get.to(() =>  GoogleMapsAssignment());
     } catch (e) {
       SnackBarFile.showSnackBar('Google Sign-In Failed', e.toString());
     }
@@ -270,7 +272,7 @@ class _SignInState extends State<SignIn> {
       final value = await firebaseAuth.signInWithEmailAndPassword(
           email: _emailController.text.trim(), password: _passController.text);
       SnackBarFile.showSnackBar('Success', 'User Sign In${value.user!.email}');
-      Get.to(() => const HomePage());
+      Get.to(() =>  GoogleMapsAssignment());
     } catch (e) {
       SnackBarFile.showSnackBar('Sign In Failed', (e.toString()));
     } finally {

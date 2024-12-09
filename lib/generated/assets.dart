@@ -2,9 +2,11 @@
 class Assets {
   Assets._();
 
+  static const String apiServicesApiServices = 'lib/Services/api_services/api_services.dart';
   static const String authLoginScreen = 'lib/ui/auth/login_screen.dart';
   static const String authSignUp = 'lib/ui/auth/sign_up.dart';
   static const String authSplashScreen = 'lib/ui/auth/splash_screen.dart';
+  static const String constConstans = 'lib/Services/const/constans.dart';
   static const String firebaseServicesSplashScreen = 'lib/firebase_services/splash_screen.dart';
   static const String fontsPoppinsSemiBold = 'assets/fonts/Poppins-SemiBold.ttf';
   static const String generatedAssets = 'lib/generated/assets.dart';
@@ -13,7 +15,8 @@ class Assets {
   static const String libFirebaseOptions = 'lib/firebase_options.dart';
   static const String libMain = 'lib/main.dart';
   static const String mainHomePage = 'lib/ui/main/home_page.dart';
-  static const String uiGoogleMapPermission = 'lib/ui/google_map_permission.dart';
+  static const String modelPlaceCoordinateModel = 'lib/Services/model/place_coordinate_model.dart';
+  static const String servicesGoogleMapPermission = 'lib/Services/google_map_permission.dart';
   static const String utilsFilesColor = 'lib/ui/utils_files/color.dart';
   static const String utilsFilesCustomSnackBar = 'lib/ui/utils_files/custom_snack_bar.dart';
   static const String utilsFilesInputDecoration = 'lib/ui/utils_files/input_decoration.dart';
